@@ -7,13 +7,13 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("appdb");
 
-// Backend API
+// Backend (API Rest)
 var api = builder.AddProject<Projects.API>("api")
     .WithReference(database)
     .WaitFor(database);
 
-// Frontend React (Node.js)
-builder.AddNpmApp("web", "../../Web")
+// Frontend (Node.js)
+builder.AddNpmApp("web", "../Web", "dev")
     .WithReference(api)
     .WithEnvironment("VITE_API_URL", api.GetEndpoint("https"))
     .WithHttpEndpoint(env: "PORT", port: 5173)
