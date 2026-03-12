@@ -1,0 +1,35 @@
+info:
+  name: Login
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{API-URL}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "userName": "{{userName}}",
+        "password": "{{password}}"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: userName
+      value: jperez
+    - name: password
+      value: Temporal01!
+  scripts:
+    - type: after-response
+      code: |-
+        let response = res.getBody()
+        bru.setEnvVar("TOKEN", response.data?.token ?? '')
+        bru.setEnvVar("REFRESH-TOKEN", response.data?.refreshToken ?? '')
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

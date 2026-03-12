@@ -27,9 +27,6 @@ bld/
 [Oo]bj/
 [Ll]og/
 
-# Migraciones de Entity Framework
-Migrations/
-
 # Logs
 logs
 *.log

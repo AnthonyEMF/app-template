@@ -1,0 +1,8 @@
+name: DEV
+variables:
+  - name: API-URL
+    value: https://localhost:7239/api
+  - name: TOKEN
+    value: ""
+  - name: REFRESH-TOKEN
+    value: PPQ6oCw49R/WaTmQAYikrtiUDm/LQRxIeatDeC2sR5OP08+QUrv2Fa/RJl7xXcExxyNfuUabkMRS2TmgB20drA==

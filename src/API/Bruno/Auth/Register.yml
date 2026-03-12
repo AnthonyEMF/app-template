@@ -1,0 +1,50 @@
+info:
+  name: Register
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{API-URL}}/auth/register"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "{{firstName}}",
+        "lastName": "{{lastName}}",
+        "userName": "{{userName}}",
+        "email": "{{email}}",
+        "role": "{{role}}",
+        "password": "{{password}}",
+        "confirmPassword": "{{confirmPassword}}"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: firstName
+      value: Juan
+    - name: lastName
+      value: Perez
+    - name: userName
+      value: jperez
+    - name: email
+      value: jperez@me.com
+    - name: role
+      value: ADMIN
+    - name: password
+      value: Temporal01!
+    - name: confirmPassword
+      value: Temporal01!
+  scripts:
+    - type: after-response
+      code: |-
+        let response = res.getBody()
+        bru.setEnvVar("TOKEN", response.data?.token ?? '')
+        bru.setEnvVar("REFRESH-TOKEN", response.data?.refreshToken ?? '')
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
