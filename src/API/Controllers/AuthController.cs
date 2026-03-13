@@ -1,9 +1,12 @@
 ﻿using API.Constants;
 using API.Database;
 using API.Database.Entities;
-using API.DTOs.Auth;
+using API.DTOs.Auth.Request;
+using API.DTOs.Auth.Response;
 using API.DTOs.Shared;
 using API.Services.Auth;
+using API.Services.Email;
+using API.Services.OTP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,20 +17,22 @@ namespace API.Controllers;
 
 [Route("api/auth")]
 [ApiController]
-[AllowAnonymous]
+[Authorize(AuthenticationSchemes = "Bearer")]
 public class AuthController(
     SignInManager<UserEntity> _signInManager,
     UserManager<UserEntity> _userManager,
     RoleManager<IdentityRole> _roleManager,
     AppDbContext _context,
+    ILogger<AuthController> _logger,
     IJwtService _jwtService,
-    ILogger<AuthController> _logger
+    IEmailService _emailService,
+    IOtpService _otpService
     ) : BaseController
 {
     // Iniciar sesión
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ActionResult<BaseDto<AuthResDto>>> Login(LoginReqDto dto)
+    public async Task<ActionResult<BaseDto<AuthDto>>> Login(LoginDto dto)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == dto.UserName);
         if (user is null)
@@ -49,7 +54,7 @@ public class AuthController(
     // Registrar nuevo usuario
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<BaseDto<AuthResDto>>> Register(RegisterReqDto dto)
+    public async Task<ActionResult<BaseDto<AuthDto>>> Register(RegisterDto dto)
     {
         if (await _context.Users.AnyAsync(u => u.UserName == dto.UserName))
             return Fail(400, MessagesConstant.INVALID_USERNAME);
@@ -84,7 +89,7 @@ public class AuthController(
     // Renovar token de acceso
     [HttpPost("refresh-token")]
     [AllowAnonymous]
-    public async Task<ActionResult<BaseDto<AuthResDto>>> RefreshToken(RefreshTokenReqDto dto)
+    public async Task<ActionResult<BaseDto<AuthDto>>> RefreshToken(RefreshTokenDto dto)
     {
         try
         {
@@ -111,5 +116,101 @@ public class AuthController(
             _logger.LogError(ex, "Error al renovar el token para el payload: {Token}", dto.Token);
             return Fail(500, MessagesConstant.REFRESH_TOKEN_ERROR);
         }
+    }
+
+    // Solicitar código OTP
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<ActionResult<BaseDto<object>>> ForgotPassword(ForgotPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user is null)
+            return Ok(200, MessagesConstant.OTP_SEND_SUCCESS, (object)null);  // No revelar si el email existe por seguridad
+
+        await _otpService.InvalidatePreviousOtpsAsync(user.Id);
+
+        var otp = await _otpService.CreateOtpAsync(user.Id);
+
+        try
+        {
+            await _emailService.SendOtpEmailAsync(user.Email!, user.FirstName, otp.Code);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al enviar OTP al correo {Email}", dto.Email);
+            return Fail(500, MessagesConstant.OTP_SEND_ERROR);
+        }
+
+        return Ok(200, MessagesConstant.OTP_SEND_SUCCESS, (object)null);
+    }
+
+    // Validar código OTP
+    [HttpPost("verify-otp")]
+    [AllowAnonymous]
+    public async Task<ActionResult<BaseDto<OtpDto>>> VerifyOtp(VerifyOtpDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user is null)
+            return Fail(401, MessagesConstant.INVALID_OTP);
+
+        var otp = await _context.UsersOtps
+            .Where(o => o.UserId == user.Id
+                     && o.Code == dto.Code
+                     && !o.IsUsed
+                     && o.ExpirationDate > DateTime.UtcNow)
+            .OrderByDescending(o => o.CreatedDate)
+            .FirstOrDefaultAsync();
+
+        if (otp is null)
+            return Fail(401, MessagesConstant.INVALID_OTP);
+
+        // Marcar OTP como usado
+        otp.IsUsed = true;
+
+        // Guardar reset token en el usuario
+        var resetToken = _otpService.GenerateResetToken();
+        user.ResetToken = resetToken;
+        user.ResetTokenExpiration = DateTime.UtcNow.AddMinutes(15);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(200, MessagesConstant.OTP_VERIFIED, new OtpDto { ResetToken = resetToken }); 
+    }
+
+    // Restablecer contraseña usando OTP
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<ActionResult<BaseDto<object>>> ResetPassword(ResetPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user is null)
+            return Fail(401, MessagesConstant.INVALID_TOKEN);
+
+        if (user.ResetToken != dto.ResetToken)
+            return Fail(401, MessagesConstant.INVALID_TOKEN);
+
+        if (user.ResetTokenExpiration < DateTime.UtcNow)
+            return Fail(401, MessagesConstant.TOKEN_EXPIRED);
+
+        // Cambiar contraseña con Identity
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, resetToken, dto.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return Fail(404, $"{MessagesConstant.PASSWORD_RESET_ERROR}: {errors}");
+        }
+
+        // Limpiar el reset token
+        user.ResetToken = null;
+        user.ResetTokenExpiration = null;
+
+        // Actualizar fecha de modificación del usuario
+        user.UpdatedDate = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(200, MessagesConstant.PASSWORD_RESET_SUCCESS, (object)null);
     }
 }

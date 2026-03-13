@@ -6,3 +6,5 @@ variables:
     value: ""
   - name: REFRESH-TOKEN
     value: PPQ6oCw49R/WaTmQAYikrtiUDm/LQRxIeatDeC2sR5OP08+QUrv2Fa/RJl7xXcExxyNfuUabkMRS2TmgB20drA==
+  - name: RESET-TOKEN
+    value: ""

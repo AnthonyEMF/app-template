@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 #nullable enable
 
-namespace API.DTOs.Auth
+namespace API.DTOs.Auth.Request
 {
-    public class RegisterReqDto
+    public class RegisterDto
     {
         [Required(ErrorMessage = "El nombre es requerido")]
         public string FirstName { get; init; } = string.Empty;

@@ -1,11 +1,13 @@
+using API.Database;
+using API.Database.Entities;
+using API.Services.Auth;
+using API.Services.Email;
+using API.Services.OTP;
+using API.Services.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using API.Database;
-using API.Database.Entities;
-using API.Services.Auth;
-using API.Services.Seed;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -23,8 +25,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 // Servicios personalizados
-builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<ISeedService, SeedService>();
+builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddTransient<IOtpService, OtpService>();
 
 // Configuración de IdentityUser
 builder.Services.AddIdentity<UserEntity, IdentityRole>(options =>

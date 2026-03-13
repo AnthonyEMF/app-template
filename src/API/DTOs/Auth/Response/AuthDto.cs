@@ -1,6 +1,6 @@
-﻿namespace API.DTOs.Auth
+﻿namespace API.DTOs.Auth.Response
 {
-    public class AuthResDto
+    public class AuthDto
     {
         public string FullName { get; init; }
         public string UserName { get; init; }

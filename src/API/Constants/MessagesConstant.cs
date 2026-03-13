@@ -25,26 +25,31 @@
         public const string LOGIN_ERROR = "Error al iniciar sesión";
         public const string REGISTRATION_SUCCESS = "Usuario registrado correctamente";
         public const string REGISTRATION_ERROR = "Error al registrar el usuario";
-        public const string REFRESH_TOKEN_SUCCESS = "Sesión renovada correctamente";
-        public const string REFRESH_TOKEN_ERROR = "Error al renovar la sesión";
-
-        public const string TOKEN_EXPIRED = "La sesión ha expirado, por favor inicie sesión nuevamente";
-        public const string INVALID_TOKEN = "La sesión no es válida, por favor inicie sesión nuevamente";
-        public const string INVALID_EMAIL_CLAIM = "El token no contiene un claim de email válido";
-
         public const string WRONG_EMAIL = "Correo electrónico inválido, intente nuevamente";
         public const string WRONG_PASSWORD = "Contraseña incorrecta, intente nuevamente";
         public const string USER_NOT_FOUND = "El usuario ingresado no existe";
         public const string USER_BLOCKED = "El usuario se encuentra bloqueado, contacte a soporte técnico";
-
         public const string INVALID_USERNAME = "El nombre de usuario ingresado ya está en uso";
         public const string INVALID_EMAIL = "El correo electrónico ingresado ya está en uso";
         public const string INVALID_ROLE = "El rol seleccionado no existe";
 
+        // JWT
+        public const string REFRESH_TOKEN_SUCCESS = "Sesión renovada correctamente";
+        public const string REFRESH_TOKEN_ERROR = "Error al renovar la sesión";
+        public const string TOKEN_EXPIRED = "La sesión ha expirado, por favor inicie sesión nuevamente";
+        public const string INVALID_TOKEN = "La sesión no es válida, por favor inicie sesión nuevamente";
+        public const string INVALID_EMAIL_CLAIM = "El token no contiene un claim de email válido";
+
+        // OTP
+        public const string OTP_SEND_SUCCESS = "Si el correo está registrado, recibirás un código en tu bandeja";
+        public const string OTP_SEND_ERROR = "No se pudo enviar el código, intenta más tarde";
+        public const string OTP_VERIFIED = "Código verificado correctamente";
+        public const string INVALID_OTP = "El código es inválido o ha expirado";
+        public const string PASSWORD_RESET_SUCCESS = "Contraseña actualizada correctamente";
+        public const string PASSWORD_RESET_ERROR = "Error al actualizar la contraseña";
+
         // Seeder
         public const string SEED_SUCCESS = "Datos de prueba cargados correctamente";
         public const string INVALID_ENV = "Este endpoint solo se puede ejecutar en entornos de desarrollo";
-
-
     }
 }

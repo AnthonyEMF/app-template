@@ -1,6 +1,6 @@
 ﻿using API.Database;
 using API.Database.Entities;
-using API.DTOs.Auth;
+using API.DTOs.Auth.Response;
 using API.DTOs.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -72,7 +72,7 @@ public class JwtService(UserManager<UserEntity> _userManager, AppDbContext _cont
     }
 
     // Generar token, persistir el refresh token y construir el DTO de respuesta
-    public async Task<BaseDto<AuthResDto>> BuildAuthResponseAsync(UserEntity user, string message)
+    public async Task<BaseDto<AuthDto>> BuildAuthResponseAsync(UserEntity user, string message)
     {
         var claims = await GetClaimsAsync(user);
         var jwtToken = GenerateAccessToken(claims);
@@ -84,12 +84,12 @@ public class JwtService(UserManager<UserEntity> _userManager, AppDbContext _cont
 
         await _context.SaveChangesAsync();
 
-        return new BaseDto<AuthResDto>
+        return new BaseDto<AuthDto>
         {
             StatusCode = 200,
             Status = true,
             Message = message,
-            Data = new AuthResDto
+            Data = new AuthDto
             {
                 FullName = $"{user.FirstName} {user.LastName}",
                 UserName = user.UserName,

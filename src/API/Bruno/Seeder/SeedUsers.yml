@@ -6,6 +6,9 @@ info:
 http:
   method: POST
   url: "{{API-URL}}/seeder/users"
+  auth:
+    type: bearer
+    token: "{{TOKEN}}"
 
 settings:
   encodeUrl: true

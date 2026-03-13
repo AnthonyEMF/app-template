@@ -8,11 +8,12 @@ namespace API.Controllers
 {
     [Route("api/seeder")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class SeederController(ISeedService _seedService, IWebHostEnvironment _env) : BaseController
     {
         // Cargar usuarios de prueba (users.json)
         [HttpPost("users")]
-        [AllowAnonymous]
+        [Authorize(Roles = $"{RolesConstant.ADMIN}")]
         public async Task<ActionResult<BaseDto<object>>> SeedUsers()
         {
             if (!_env.IsDevelopment())

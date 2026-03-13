@@ -12,6 +12,10 @@ namespace API.Database.Entities
 
         public DateTime RefreshTokenExpiration { get; set; }
 
+        public string ResetToken { get; set; }
+        
+        public DateTime? ResetTokenExpiration { get; set; }
+
         public DateTime CreatedDate { get; set; }
 
         public DateTime UpdatedDate { get; set; }

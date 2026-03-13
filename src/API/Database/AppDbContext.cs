@@ -7,8 +7,7 @@ namespace API.Database
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<UserEntity>(options)
     {
-        // Agregar DbSets...
-        // public DbSet<Product> Products => Set<Product>();
+        public DbSet<UserOtpEntity> UsersOtps => Set<UserOtpEntity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

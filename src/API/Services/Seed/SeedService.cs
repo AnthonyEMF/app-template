@@ -1,6 +1,6 @@
 ﻿using API.Constants;
 using API.Database.Entities;
-using API.DTOs.Auth;
+using API.DTOs.Auth.Request;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
 
@@ -25,7 +25,7 @@ namespace API.Services.Seed
         {
             var jsonFilePath = "Database/SeedData/users.json";
             var jsonContent = await File.ReadAllTextAsync(jsonFilePath);
-            var users = JsonConvert.DeserializeObject<List<RegisterReqDto>>(jsonContent);
+            var users = JsonConvert.DeserializeObject<List<RegisterDto>>(jsonContent);
 
             foreach (var seedUser in users)
             {
