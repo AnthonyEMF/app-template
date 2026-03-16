@@ -12,15 +12,13 @@ namespace API.Services.Email
             var emailSettings = _config.GetSection("Email");
 
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(
-                emailSettings["SenderName"],
-                emailSettings["SenderEmail"]));
+
+            message.From.Add(new MailboxAddress(emailSettings["SenderName"], emailSettings["SenderEmail"]));
             message.To.Add(MailboxAddress.Parse(toEmail));
             message.Subject = "Código de recuperación de contraseña";
             message.Body = new BodyBuilder
             {
-                HtmlBody = BuildEmailTemplate(userName, otpCode,
-                    int.Parse(emailSettings["OtpExpiration"] ?? "10"))
+                HtmlBody = BuildEmailTemplate(userName, otpCode, int.Parse(emailSettings["OtpExpiration"] ?? "10"))
             }.ToMessageBody();
 
             using var smtp = new SmtpClient();
@@ -30,10 +28,7 @@ namespace API.Services.Email
                 int.Parse(emailSettings["Port"] ?? "587"),
                 SecureSocketOptions.StartTls);
 
-            await smtp.AuthenticateAsync(
-                emailSettings["SenderEmail"],
-                emailSettings["Password"]);
-
+            await smtp.AuthenticateAsync(emailSettings["SenderEmail"], emailSettings["Password"]);
             await smtp.SendAsync(message);
             await smtp.DisconnectAsync(quit: true);
 

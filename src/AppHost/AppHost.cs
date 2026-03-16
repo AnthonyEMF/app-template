@@ -1,9 +1,12 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// PostgreSQL + pgAdmin integrado
+// PostgreSQL + pgAdmin
 var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume("postgres-data")
-    .WithPgAdmin(pgAdmin => pgAdmin.WithHostPort(5050));
+    .WithImage("postgres", "17-alpine")
+    .WithDataVolume("apptemplate-postgres-data")
+    .WithPgAdmin(pgAdmin => pgAdmin
+    .WithHostPort(5050)
+    .WithImage("dpage/pgadmin4", "latest"));
 
 var database = postgres.AddDatabase("appdb");
 
