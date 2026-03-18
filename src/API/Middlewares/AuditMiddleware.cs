@@ -13,10 +13,14 @@ public class AuditMiddleware(
     IServiceScopeFactory _scopeFactory
     )
 {
-    // Se excluye GET para evitar logs excesivos
+    // Se excluye GET para evitar saturar la base de datos
     private static readonly HashSet<string> _trackedMethods =
-        new(StringComparer.OrdinalIgnoreCase) { "POST", "PUT", "PATCH", "DELETE" }; 
+        new(StringComparer.OrdinalIgnoreCase) { "POST", "PUT", "PATCH", "DELETE" };
 
+    // Excluir códigos de error comunes (ej. validación)
+    private static readonly HashSet<int> _excludedStatusCodes = new() { 400, 404, 422 };
+
+    // Método principal del middleware
     public async Task InvokeAsync(HttpContext context)
     {
         if (!_trackedMethods.Contains(context.Request.Method))
@@ -51,6 +55,9 @@ public class AuditMiddleware(
             await bodyBuffer.CopyToAsync(originalBody);
             context.Response.Body = originalBody;
         }
+
+        if (_excludedStatusCodes.Contains(context.Response.StatusCode))
+            return;
 
         // Leer el cuerpo de la respuesta para extraer el mensaje
         bodyBuffer.Seek(0, SeekOrigin.Begin);

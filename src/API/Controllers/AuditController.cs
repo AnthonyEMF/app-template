@@ -22,6 +22,7 @@ public class AuditController(AuditDbContext _auditDb) : BaseController
         [FromQuery] int pageSize = 20,
         [FromQuery] string searchTerm = null,
         [FromQuery] string method = null,
+        [FromQuery] int? statusCode = null,
         [FromQuery] bool? success = null,
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null
@@ -45,6 +46,10 @@ public class AuditController(AuditDbContext _auditDb) : BaseController
         // Por método HTTP (POST, PUT, PATCH, DELETE)
         if (!string.IsNullOrWhiteSpace(method))
             filterDefs.Add(builder.Eq("context.request.method", method.ToUpper()));
+
+        // Por código de estado HTTP (200, 401, 500, etc.)
+        if (statusCode.HasValue)
+            filterDefs.Add(builder.Eq("context.response.status", statusCode.Value));
 
         // Por éxito o error de la respuesta
         if (success == true || success == false)
