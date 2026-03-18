@@ -1,5 +1,6 @@
 using API.Database;
-using API.Database.Entities;
+using API.Database.Models;
+using API.Middlewares;
 using API.Services.Auth;
 using API.Services.Email;
 using API.Services.OTP;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson.Serialization.Conventions;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -15,12 +17,21 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Telemetría y conexión a la base de datos
+// Telemetría y conexión a la base de datos principal
 builder.AddServiceDefaults();                     
 builder.AddNpgsqlDbContext<AppDbContext>("appdb");
 
+// Base de datos de auditoría (Logs)
+builder.AddMongoDBClient("auditdb"); 
+builder.Services.AddSingleton<AuditDbContext>();
+
+// Convención para que los nombres de los campos en MongoDB sean camelCase
+var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
+ConventionRegistry.Register("CamelCase", camelCaseConvention, _ => true);
+
 // Servicios de ASP.NET Core
-builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddControllers(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
@@ -90,6 +101,7 @@ app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AuditMiddleware>();
 app.MapControllers();
 
 app.Run();

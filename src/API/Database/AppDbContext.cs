@@ -1,4 +1,4 @@
-﻿using API.Database.Entities;
+﻿using API.Database.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

@@ -1,0 +1,44 @@
+info:
+  name: ApiLogs
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{API-URL}}/audit/logs?pageNumber=1&pageSize=20"
+  params:
+    - name: pageNumber
+      value: "1"
+      type: query
+    - name: pageSize
+      value: "20"
+      type: query
+    - name: searchTerm
+      value: jperez
+      type: query
+      disabled: true
+    - name: method
+      value: POST
+      type: query
+      disabled: true
+    - name: success
+      value: "false"
+      type: query
+      disabled: true
+    - name: from
+      value: 2026-03-17T00:00:00
+      type: query
+      disabled: true
+    - name: to
+      value: 2026-03-17T23:00:00
+      type: query
+      disabled: true
+  auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

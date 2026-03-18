@@ -1,5 +1,5 @@
 ﻿using API.Database;
-using API.Database.Entities;
+using API.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 

@@ -1,5 +1,5 @@
 ﻿using API.Database;
-using API.Database.Entities;
+using API.Database.Models;
 using API.DTOs.Auth.Response;
 using API.DTOs.Shared;
 using Microsoft.AspNetCore.Identity;
@@ -11,16 +11,25 @@ using System.Text;
 
 namespace API.Services.Auth;
 
-public class JwtService(UserManager<UserEntity> _userManager, AppDbContext _context, IConfiguration _config) : IJwtService
+public class JwtService(
+    UserManager<UserEntity> _userManager, 
+    AppDbContext _context, 
+    IConfiguration _config, 
+    IHttpContextAccessor _httpContextAccessor
+    ) : IJwtService
 {
+    public const string HttpContextUserKey = "AuditUser";
+
     // Construir los claims del usuario incluyendo sus roles
     private async Task<List<Claim>> GetClaimsAsync(UserEntity user)
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.Email,              user.Email!),
-            new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
-            new("UserId",                      user.Id),
+            new(ClaimTypes.Email,               user.Email!),
+            new(JwtRegisteredClaimNames.Jti,    Guid.NewGuid().ToString()),
+            new("userId",                       user.Id),
+            new("userName",                     user.UserName),
+            new("fullName",                     $"{user.FirstName} {user.LastName}")
         };
 
         var roles = await _userManager.GetRolesAsync(user);
@@ -39,8 +48,7 @@ public class JwtService(UserManager<UserEntity> _userManager, AppDbContext _cont
             issuer: _config["JWT:Issuer"],
             audience: _config["JWT:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                                    int.Parse(_config["JWT:Expiration"] ?? "15")),
+            expires: DateTime.UtcNow.AddMinutes(int.Parse(_config["JWT:Expiration"] ?? "15")),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
     }
@@ -53,22 +61,20 @@ public class JwtService(UserManager<UserEntity> _userManager, AppDbContext _cont
         return Convert.ToBase64String(bytes);
     }
 
-    
     // Extraer el ClaimsPrincipal de un token expirado (sin validar lifetime)
     public ClaimsPrincipal GetClaimsFromExpiredToken(string token)
     {
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_config["JWT:Secret"]!));
 
-        var validationParams = new TokenValidationParameters
-        {
-            IssuerSigningKey = key,
-            ValidateLifetime = false,
-            ValidateIssuer = false,
-            ValidateAudience = false,
-        };
-
-        return new JwtSecurityTokenHandler().ValidateToken(token, validationParams, out _);
+        return new JwtSecurityTokenHandler().ValidateToken(token,
+            new TokenValidationParameters
+            {
+                IssuerSigningKey = key,
+                ValidateLifetime = false,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+            }, out _);
     }
 
     // Generar token, persistir el refresh token y construir el DTO de respuesta
@@ -79,10 +85,19 @@ public class JwtService(UserManager<UserEntity> _userManager, AppDbContext _cont
         var refreshToken = GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiration = DateTime.UtcNow
-            .AddMinutes(int.Parse(_config["JWT:RefreshExpiration"] ?? "30"));
+        user.RefreshTokenExpiration = DateTime.UtcNow.AddMinutes(int.Parse(_config["JWT:RefreshExpiration"] ?? "30"));
 
         await _context.SaveChangesAsync();
+
+        // Exponer datos del usuario para que el middleware los pueda leer
+        // Cubre el caso de login/register donde no hay JWT en la request
+        _httpContextAccessor.HttpContext?.Items.TryAdd(HttpContextUserKey, new LogUser
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            FullName = $"{user.FirstName} {user.LastName}",
+            Role = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value
+        });
 
         return new BaseDto<AuthDto>
         {

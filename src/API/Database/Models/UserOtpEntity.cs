@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace API.Database.Entities
+namespace API.Database.Models
 {
     [Table("UsersOtps", Schema = "security")]
     public class UserOtpEntity

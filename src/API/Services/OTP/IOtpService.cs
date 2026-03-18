@@ -1,4 +1,4 @@
-﻿using API.Database.Entities;
+﻿using API.Database.Models;
 
 namespace API.Services.OTP
 {

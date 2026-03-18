@@ -1,4 +1,4 @@
-﻿using API.Database.Entities;
+﻿using API.Database.Models;
 using API.DTOs.Auth.Response;
 using API.DTOs.Shared;
 using System.Security.Claims;
