@@ -1,6 +1,6 @@
 ﻿using API.Constants;
 using API.Database;
-using API.Database.Entities;
+using API.Database.Models;
 using API.DTOs.Auth.Request;
 using API.DTOs.Auth.Response;
 using API.DTOs.Shared;

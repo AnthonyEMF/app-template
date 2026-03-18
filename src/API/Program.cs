@@ -1,7 +1,6 @@
 using API.Database;
-using API.Database.Entities;
+using API.Database.Models;
 using API.Middlewares;
-using API.Services.Audit;
 using API.Services.Auth;
 using API.Services.Email;
 using API.Services.OTP;
@@ -10,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson.Serialization.Conventions;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -25,6 +25,10 @@ builder.AddNpgsqlDbContext<AppDbContext>("appdb");
 builder.AddMongoDBClient("auditdb"); 
 builder.Services.AddSingleton<AuditDbContext>();
 
+// Convención para que los nombres de los campos en MongoDB sean camelCase
+var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
+ConventionRegistry.Register("CamelCase", camelCaseConvention, _ => true);
+
 // Servicios de ASP.NET Core
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(); 
@@ -32,7 +36,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 // Servicios personalizados
-builder.Services.AddTransient<IAuditService, AuditService>();
 builder.Services.AddTransient<ISeedService, SeedService>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IEmailService, EmailService>();

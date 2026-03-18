@@ -1,5 +1,5 @@
-﻿using API.Database.Models;
-using API.Services.Audit;
+﻿using API.Database;
+using API.Database.Models;
 using API.Services.Auth;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -64,8 +64,8 @@ public class AuditMiddleware(
             try
             {
                 await using var scope = _scopeFactory.CreateAsyncScope();
-                var auditService = scope.ServiceProvider.GetRequiredService<IAuditService>();
-                await auditService.InsertLogAsync(log);
+                var auditDb = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
+                await auditDb.ApiLogs.InsertOneAsync(log);
             }
             catch (Exception ex)
             {
@@ -147,7 +147,7 @@ public class AuditMiddleware(
         };
     }
 
-    // Extrae el campo "message" del JSON de respuesta
+    // Extraer campo message
     private static string ExtractMessage(string responseBody)
     {
         if (string.IsNullOrWhiteSpace(responseBody))

@@ -1,5 +1,4 @@
 ﻿using API.Database;
-using API.Database.Entities;
 using API.Database.Models;
 using API.DTOs.Auth.Response;
 using API.DTOs.Shared;
@@ -61,7 +60,6 @@ public class JwtService(
         RandomNumberGenerator.Fill(bytes);
         return Convert.ToBase64String(bytes);
     }
-
 
     // Extraer el ClaimsPrincipal de un token expirado (sin validar lifetime)
     public ClaimsPrincipal GetClaimsFromExpiredToken(string token)

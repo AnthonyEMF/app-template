@@ -1,5 +1,5 @@
 ﻿using API.Constants;
-using API.Database.Entities;
+using API.Database.Models;
 using API.DTOs.Auth.Request;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
