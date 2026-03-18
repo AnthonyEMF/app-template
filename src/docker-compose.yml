@@ -1,8 +1,10 @@
 version: '3.9'
 
 services:
+  # Base de datos principal: PostgreSQL
   postgres:
     image: postgres:17-alpine
+    container_name: apptemplate_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
@@ -10,14 +12,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports: ["5432:5432"]
-    networks: [app_network]
+    networks: [apptemplate_network]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
       interval: 10s
       retries: 5
 
+  # Gestor de base de datos principal: pgAdmin
   pgadmin:
     image: dpage/pgadmin4:latest
+    container_name: apptemplate_pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
@@ -28,20 +32,59 @@ services:
     ports: ["5050:80"]
     depends_on:
       postgres: { condition: service_healthy }
-    networks: [app_network]
+    networks: [apptemplate_network]
 
+  # Base de datos de auditoría: MongoDB
+  mongodb:
+    image: mongo:8-jammy
+    container_name: apptemplate_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-1234}
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - apptemplate_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 5
+
+  # Gestor de base de datos de auditoría: mongo-express
+  mongo-express:
+    image: mongo-express:latest
+    container_name: apptemplate_mongo_express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-admin123}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-admin123}@mongodb:27017/
+      ME_CONFIG_BASICAUTH: "false"
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - apptemplate_network
+
+  # Backend: ASP.NET Core API
   api:
     build: { context: ., dockerfile: API/Dockerfile }
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__appdb: >
         Host=postgres;Port=5432;Database=${POSTGRES_DB:-appdb};
-        Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:-admin123}
+        Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:-1234}
+      MongoDB__ConnectionString: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-1234}@mongodb:27017
+      MongoDB__Database: ${MONGO_DB:-auditdb}
     ports: ["5000:8080"]
     depends_on:
       postgres: { condition: service_healthy }
-    networks: [app_network]
+    networks: [apptemplate_network]
 
+  # Frontend: Node.js con Vite
   web:
     build:
       context: Web
@@ -49,11 +92,12 @@ services:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
     ports: ["3000:80"]
     depends_on: [api]
-    networks: [app_network]
+    networks: [apptemplate_network]
 
 volumes:
   postgres_data:
   pgadmin_data:
+  mongo_data:
 
 networks:
-  app_network:
+  apptemplate_network:

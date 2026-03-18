@@ -1,0 +1,22 @@
+info:
+  name: LogsByUser
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{API-URL}}/audit/logs/user/{{userId}}"
+  auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+runtime:
+  variables:
+    - name: userId
+      value: 82414e04-706d-4c33-9209-6092942129b9
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

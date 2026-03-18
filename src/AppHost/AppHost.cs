@@ -1,19 +1,32 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// PostgreSQL + pgAdmin
+// PostgreSQL
 var postgres = builder.AddPostgres("postgres")
     .WithImage("postgres", "17-alpine")
-    .WithDataVolume("apptemplate-postgres-data")
-    .WithPgAdmin(pgAdmin => pgAdmin
-    .WithHostPort(5050)
-    .WithImage("dpage/pgadmin4", "latest"));
+    .WithDataVolume("apptemplate-postgres-data");
 
-var database = postgres.AddDatabase("appdb");
+// pgAdmin 
+postgres.WithPgAdmin(pgAdmin => pgAdmin
+    .WithHostPort(5050)
+    .WithImage("dpage/pgadmin4", "latest")
+    .WithParentRelationship(postgres));
+
+var appDb = postgres.AddDatabase("appdb");
+
+// MongoDB + MongoExpress
+var mongo = builder.AddMongoDB("mongo")
+    .WithImage("mongo", "8.2")
+    .WithDataVolume("apptemplate-mongo-data")
+    .WithMongoExpress(express => { express.WithHostPort(8081); }, "mongo-express");
+
+var auditDb = mongo.AddDatabase("auditdb");
 
 // Backend (API Rest)
 var api = builder.AddProject<Projects.API>("api")
-    .WithReference(database)
-    .WaitFor(database);
+    .WithReference(appDb)
+    .WithReference(auditDb)
+    .WaitFor(appDb)
+    .WaitFor(auditDb);
 
 // Frontend (Node.js)
 builder.AddNpmApp("web", "../Web", "dev")
