@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace API.Migrations
+namespace API.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260312175902_AddUsersOtpsTable")]
-    partial class AddUsersOtpsTable
+    [Migration("20260313194346_AddResetTokenPropsToUsersTable")]
+    partial class AddResetTokenPropsToUsersTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -81,6 +81,12 @@ namespace API.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("RefreshTokenExpiration")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ResetToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ResetTokenExpiration")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SecurityStamp")

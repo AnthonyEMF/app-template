@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace API.Migrations
+namespace API.Database.Migrations
 {
     /// <inheritdoc />
     public partial class AddResetTokenPropsToUsersTable : Migration

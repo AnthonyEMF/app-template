@@ -85,7 +85,10 @@ app.MapDefaultEndpoints();
 
 // Migración automatica
 using (var scope = app.Services.CreateScope())
-    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 // Cargar roles de usuario (RolesConstant.cs)
 using (var scope = app.Services.CreateScope())

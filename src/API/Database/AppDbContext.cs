@@ -27,5 +27,7 @@ namespace API.Database
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
+
+        // TODO: Crear un SaveChangesAsync que capture las props de auditoria (CreatedDate, CreatedBy, UpdatedDate y UpdatedBy)
     }
 }
