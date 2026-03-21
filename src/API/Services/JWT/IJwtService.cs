@@ -8,6 +8,6 @@ namespace API.Services.Auth;
 public interface IJwtService
 {
     Task<BaseDto<AuthDto>> BuildAuthResponseAsync(UserEntity user, string message);
-
     ClaimsPrincipal GetClaimsFromExpiredToken(string token);
+    string GetCurrentUserId();
 }

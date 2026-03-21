@@ -117,4 +117,11 @@ public class JwtService(
             }
         };
     }
+
+    // Obtener ID del usuario en sesión
+    public string GetCurrentUserId()
+    {
+        var user = _httpContextAccessor.HttpContext?.Items[HttpContextUserKey] as LogUser;
+        return user?.Id;
+    }
 }
